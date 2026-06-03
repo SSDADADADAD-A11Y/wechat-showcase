@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const API_KEY = 'sk-1d37394180f04693ac39d7e35317ed90';
 const ADMIN_PASSWORD = 'admin123';
 

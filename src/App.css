@@ -71,6 +71,28 @@
   width: 100%;
 }
 
+.header__nav a.header__game-link {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  color: #fff;
+  background: var(--primary);
+}
+
+.header__nav a.header__game-link:hover {
+  color: #fff;
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.header__nav a.header__game-link::after {
+  display: none;
+}
+
 .header__hamburger {
   display: none;
   flex-direction: column;
@@ -117,6 +139,11 @@
 
   .header__nav a {
     font-size: 18px;
+  }
+
+  .header__nav a.header__game-link {
+    min-height: 42px;
+    padding: 0 14px;
   }
 }
 

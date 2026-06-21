@@ -1,0 +1,604 @@
+.smile-game {
+  padding: 100px 0;
+  overflow: hidden;
+  color: #fff8ea;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 36%),
+    #11100e;
+}
+
+body.smile-game-page {
+  overflow: hidden;
+  background: #080706;
+}
+
+.smile-game__heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  align-items: end;
+  gap: 64px;
+  margin-bottom: 34px;
+}
+
+.smile-game__eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: #e6bd66;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.smile-game__heading h2 {
+  margin: 0;
+  color: #fff8ea;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.smile-game__heading p {
+  margin: 0 0 4px;
+  color: #bcb5a8;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.smile-game__stage {
+  position: relative;
+  width: 100%;
+  height: 68vh;
+  min-height: 590px;
+  max-height: 720px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 244, 218, 0.18);
+  border-radius: 8px;
+  background: #080706;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.38);
+  isolation: isolate;
+}
+
+.smile-game__stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  content: '';
+  background:
+    linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.035), transparent),
+    radial-gradient(circle at center, transparent 48%, rgba(0, 0, 0, 0.46));
+  background-size: 100% 4px, 100% 100%;
+  opacity: 0.32;
+}
+
+.smile-game__stage:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+}
+
+.smile-game__video {
+  display: none;
+}
+
+.smile-game__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.smile-game__topbar,
+.smile-game__telemetry,
+.smile-game__welcome,
+.smile-game__loading,
+.smile-game__controls,
+.smile-game__counter,
+.smile-game__corner {
+  position: absolute;
+  z-index: 3;
+}
+
+.smile-game__topbar {
+  top: 16px;
+  right: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.smile-game__topbar-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.smile-game__brand,
+.smile-game__status,
+.smile-game__telemetry,
+.smile-game__controls,
+.smile-game__counter,
+.smile-game__corner {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(11, 9, 7, 0.72);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(16px) saturate(1.12);
+}
+
+.smile-game__brand,
+.smile-game__back,
+.smile-game__status {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.smile-game__back {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 38px;
+  color: #fff8ea;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.smile-game__back:hover {
+  color: #ffd36a;
+  border-color: rgba(255, 211, 106, 0.62);
+  background: rgba(255, 211, 106, 0.09);
+}
+
+.smile-game__brand {
+  gap: 9px;
+  padding: 0 13px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.smile-game__brand svg {
+  color: #ffd36a;
+}
+
+.smile-game__status {
+  gap: 8px;
+  max-width: 52%;
+  padding: 0 12px;
+  color: #c5beb3;
+  font-size: 13px;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.smile-game__status > span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #8f8a81;
+}
+
+.smile-game__status > span.is-live {
+  background: #60d886;
+  box-shadow: 0 0 12px rgba(96, 216, 134, 0.86);
+}
+
+.smile-game__telemetry {
+  top: 70px;
+  left: 16px;
+  display: grid;
+  width: 190px;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.smile-game__telemetry div {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  align-items: center;
+  min-height: 26px;
+  gap: 8px;
+}
+
+.smile-game__telemetry span {
+  color: #9c958b;
+  font-size: 12px;
+}
+
+.smile-game__telemetry strong {
+  overflow: hidden;
+  color: #fff8ea;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smile-game__welcome,
+.smile-game__loading {
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: min(560px, calc(100% - 40px));
+  align-items: center;
+  flex-direction: column;
+  transform: translate(-50%, -48%);
+  text-align: center;
+}
+
+.smile-game__head-stack {
+  position: relative;
+  width: 250px;
+  height: 170px;
+  margin-bottom: 16px;
+}
+
+.smile-game__head-stack img {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 132px;
+  height: 154px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.42));
+}
+
+.smile-game__head-stack img:nth-child(1) {
+  z-index: 1;
+  transform: translateX(-104%) rotate(-9deg) scale(0.84);
+  opacity: 0.72;
+}
+
+.smile-game__head-stack img:nth-child(2) {
+  z-index: 3;
+  transform: translateX(-50%);
+}
+
+.smile-game__head-stack img:nth-child(3) {
+  z-index: 2;
+  transform: translateX(5%) rotate(9deg) scale(0.84);
+  opacity: 0.72;
+}
+
+.smile-game__welcome h3 {
+  margin: 0 0 18px;
+  color: #fff8ea;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 28px;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.smile-game__moves {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.smile-game__moves span {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 6px;
+  color: #c7c0b5;
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 13px;
+}
+
+.smile-game__moves svg {
+  color: #e6bd66;
+}
+
+.smile-game__start {
+  display: inline-flex;
+  min-width: 150px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid #f5ce77;
+  border-radius: 6px;
+  color: #1b1207;
+  background: #ffd36a;
+  box-shadow: 0 12px 38px rgba(255, 211, 106, 0.22);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 800;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.smile-game__start:hover {
+  color: #1b1207;
+  background: #ffe39b;
+  transform: translateY(-2px);
+}
+
+.smile-game__loading {
+  gap: 16px;
+  color: #d7cfc1;
+  font-size: 14px;
+}
+
+.smile-game__loading > span {
+  width: 42px;
+  height: 42px;
+  border: 2px solid rgba(255, 255, 255, 0.13);
+  border-top-color: #ffd36a;
+  border-radius: 50%;
+  animation: smile-game-spin 800ms linear infinite;
+}
+
+@keyframes smile-game-spin {
+  to { transform: rotate(360deg); }
+}
+
+.smile-game__controls {
+  bottom: 16px;
+  left: 50%;
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  transform: translateX(-50%);
+}
+
+.smile-game__icon-btn {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 6px;
+  color: #fff8ea;
+  background: rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.smile-game__icon-btn:hover {
+  border-color: rgba(255, 211, 106, 0.78);
+  color: #fff8ea;
+  background: rgba(255, 211, 106, 0.12);
+  transform: translateY(-1px);
+}
+
+.smile-game__icon-btn--stop {
+  color: #ffb6a2;
+}
+
+.smile-game__sensitivity {
+  display: grid;
+  grid-template-columns: auto 120px;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 6px;
+  color: #bcb5aa;
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.smile-game__sensitivity input {
+  width: 100%;
+  accent-color: #ffd36a;
+}
+
+.smile-game__counter {
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  min-width: 170px;
+  min-height: 60px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.smile-game__counter > span {
+  color: #ffd36a;
+  font-family: Georgia, serif;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.smile-game__counter div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.smile-game__counter small {
+  color: #908a81;
+  font-size: 10px;
+}
+
+.smile-game__counter strong {
+  overflow: hidden;
+  max-width: 100px;
+  color: #fff8ea;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smile-game__corner {
+  right: 16px;
+  bottom: 16px;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border-radius: 6px;
+  color: #9f988d;
+  font-size: 11px;
+}
+
+.game-camera-active .chat-fab,
+.game-camera-active .chat-panel {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.smile-game--standalone {
+  width: 100%;
+  height: 100svh;
+  min-height: 620px;
+  padding: 0;
+}
+
+.smile-game__standalone {
+  width: 100%;
+  height: 100%;
+}
+
+.smile-game--standalone .smile-game__stage {
+  height: 100%;
+  min-height: 620px;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 900px) {
+  .smile-game {
+    padding: 72px 0;
+  }
+
+  .smile-game__heading {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .smile-game__heading h2 {
+    font-size: 34px;
+  }
+
+  .smile-game__stage {
+    height: 74vh;
+    min-height: 620px;
+  }
+
+  .smile-game__corner {
+    display: none;
+  }
+
+  .smile-game__controls {
+    right: 16px;
+    left: auto;
+    transform: none;
+  }
+
+  .smile-game__sensitivity {
+    grid-template-columns: auto 92px;
+  }
+}
+
+@media (max-width: 640px) {
+  .smile-game {
+    padding: 58px 0 0;
+  }
+
+  .smile-game > .container {
+    padding: 0;
+  }
+
+  .smile-game__heading {
+    padding: 0 20px;
+    margin-bottom: 24px;
+  }
+
+  .smile-game__heading h2 {
+    font-size: 30px;
+  }
+
+  .smile-game__heading p {
+    font-size: 14px;
+  }
+
+  .smile-game__stage {
+    height: 100svh;
+    min-height: 620px;
+    max-height: none;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .smile-game__brand span {
+    display: none;
+  }
+
+  .smile-game__status {
+    max-width: none;
+  }
+
+  .smile-game__telemetry {
+    top: 68px;
+    width: 168px;
+  }
+
+  .smile-game__welcome h3 {
+    font-size: 24px;
+  }
+
+  .smile-game__moves {
+    max-width: 270px;
+  }
+
+  .smile-game__controls {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .smile-game__sensitivity {
+    order: -1;
+    width: 100%;
+    grid-template-columns: auto minmax(100px, 1fr);
+  }
+
+  .smile-game__counter {
+    bottom: 116px;
+    left: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smile-game__loading > span {
+    animation-duration: 1.6s;
+  }
+
+  .smile-game__start,
+  .smile-game__icon-btn {
+    transition: none;
+  }
+}

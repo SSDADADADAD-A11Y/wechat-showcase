@@ -1,10 +1,3 @@
-const TASKS_PACKAGE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest';
-const WASM_ROOT = `${TASKS_PACKAGE}/wasm`;
-const FACE_MODEL =
-  'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task';
-const GESTURE_MODEL =
-  'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/latest/gesture_recognizer.task';
-
 export const SMILE_HEADS = [
   ['慈祥笑', '/game/heads/head-01-cixiang.png'],
   ['欣慰笑', '/game/heads/head-02-xinwei.png'],
@@ -38,6 +31,40 @@ const GESTURE_LABELS = {
   None: '等待手势',
 };
 
+export function getSmilePerformanceProfile() {
+  const mobileUserAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const compactTouchDevice =
+    navigator.maxTouchPoints > 0 && Math.min(window.screen.width, window.screen.height) <= 900;
+
+  if (mobileUserAgent || compactTouchDevice) {
+    return {
+      id: 'light',
+      label: '手机轻量模式',
+      cameraWidth: 640,
+      cameraHeight: 480,
+      cameraFrameRate: 24,
+      inferenceInterval: 110,
+      numHands: 1,
+      maxDpr: 1,
+      dissolveParticles: 40,
+      switchParticles: 16,
+    };
+  }
+
+  return {
+    id: 'standard',
+    label: '桌面流畅模式',
+    cameraWidth: 960,
+    cameraHeight: 540,
+    cameraFrameRate: 30,
+    inferenceInterval: 66,
+    numHands: 1,
+    maxDpr: 1.5,
+    dissolveParticles: 88,
+    switchParticles: 28,
+  };
+}
+
 export function createSmileGame({
   video,
   canvas,
@@ -48,6 +75,7 @@ export function createSmileGame({
   onHeadChange,
 }) {
   const ctx = canvas.getContext('2d', { alpha: false });
+  const performanceProfile = getSmilePerformanceProfile();
   const headImages = SMILE_HEADS.map(([, src]) => {
     const image = new Image();
     image.decoding = 'async';
@@ -56,9 +84,15 @@ export function createSmileGame({
   });
 
   let stream = null;
-  let faceLandmarker = null;
-  let gestureRecognizer = null;
-  let modelLoadPromise = null;
+  let visionWorker = null;
+  let workerReadyPromise = null;
+  let workerReadyResolve = null;
+  let workerReadyReject = null;
+  let workerInitTimeout = 0;
+  let inferencePending = false;
+  let inferenceRequestId = 0;
+  let visionGeneration = 0;
+  let consecutiveDetectionErrors = 0;
   let animationFrame = 0;
   let lastVideoTime = -1;
   let lastInferenceAt = 0;
@@ -104,25 +138,29 @@ export function createSmileGame({
   async function start() {
     if (running || destroyed) return;
 
-    onState({ loading: true, running: false });
+    onState({ loading: true, running: false, modeLabel: performanceProfile.label });
     onStatus('准备摄像头');
 
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
         throw new Error('请使用 HTTPS 地址打开后再启动摄像头');
       }
+      if (!window.Worker || typeof window.createImageBitmap !== 'function') {
+        throw new Error('当前浏览器不支持高速识别，请使用最新版系统浏览器');
+      }
 
       const cameraPromise = navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: performanceProfile.cameraWidth },
+          height: { ideal: performanceProfile.cameraHeight },
+          frameRate: { ideal: performanceProfile.cameraFrameRate, max: performanceProfile.cameraFrameRate },
           facingMode: 'user',
         },
         audio: false,
       });
 
-      onStatus('加载识别模型');
-      const [mediaStream] = await Promise.all([cameraPromise, loadModels()]);
+      onStatus(`加载识别模型 · ${performanceProfile.label}`);
+      const [mediaStream] = await Promise.all([cameraPromise, initializeVisionWorker()]);
       if (destroyed) {
         mediaStream.getTracks().forEach((track) => track.stop());
         return;
@@ -132,10 +170,12 @@ export function createSmileGame({
       video.srcObject = stream;
       await video.play();
       running = true;
+      visionGeneration += 1;
+      inferencePending = false;
       lastVideoTime = -1;
       lastInferenceAt = 0;
-      onState({ loading: false, running: true });
-      onStatus('镜头已连接');
+      onState({ loading: false, running: true, modeLabel: performanceProfile.label });
+      onStatus(`镜头已连接 · ${performanceProfile.label}`);
       resizeCanvas();
       render();
     } catch (error) {
@@ -143,55 +183,103 @@ export function createSmileGame({
       if (stream) stream.getTracks().forEach((track) => track.stop());
       stream = null;
       video.srcObject = null;
-      onState({ loading: false, running: false });
+      onState({ loading: false, running: false, modeLabel: performanceProfile.label });
       onStatus(getFriendlyError(error));
       paintIdleScene();
     }
   }
 
-  async function loadModels() {
-    if (modelLoadPromise) return modelLoadPromise;
+  async function initializeVisionWorker() {
+    if (workerReadyPromise) return workerReadyPromise;
 
-    modelLoadPromise = (async () => {
-      const { FaceLandmarker, FilesetResolver, GestureRecognizer } = await import(
-        /* @vite-ignore */ TASKS_PACKAGE
-      );
-      const vision = await FilesetResolver.forVisionTasks(WASM_ROOT);
+    visionWorker = new Worker(new URL('./smileVision.worker.js', import.meta.url), {
+      type: 'module',
+      name: 'smile-vision-worker',
+    });
 
-      try {
-        await createVisionTasks(FaceLandmarker, GestureRecognizer, vision, 'GPU');
-      } catch (error) {
-        console.warn('GPU delegate unavailable, using CPU.', error);
-        await createVisionTasks(FaceLandmarker, GestureRecognizer, vision, 'CPU');
-      }
-    })();
+    visionWorker.addEventListener('message', handleWorkerMessage);
+    visionWorker.addEventListener('error', handleWorkerError);
+    workerReadyPromise = new Promise((resolve, reject) => {
+      workerReadyResolve = resolve;
+      workerReadyReject = reject;
+      workerInitTimeout = window.setTimeout(() => {
+        rejectWorkerInitialization(new Error('识别模型加载超时，请检查网络后重试'));
+      }, 45000);
+    });
 
-    return modelLoadPromise;
+    visionWorker.postMessage({ type: 'init', numHands: performanceProfile.numHands });
+
+    try {
+      await workerReadyPromise;
+    } catch (error) {
+      resetVisionWorker();
+      throw error;
+    }
   }
 
-  async function createVisionTasks(FaceLandmarker, GestureRecognizer, vision, delegate) {
-    faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-      baseOptions: { modelAssetPath: FACE_MODEL, delegate },
-      runningMode: 'VIDEO',
-      numFaces: 1,
-      minFaceDetectionConfidence: 0.45,
-      minFacePresenceConfidence: 0.45,
-      minTrackingConfidence: 0.45,
-    });
+  function handleWorkerMessage(event) {
+    const message = event.data;
 
-    gestureRecognizer = await GestureRecognizer.createFromOptions(vision, {
-      baseOptions: { modelAssetPath: GESTURE_MODEL, delegate },
-      runningMode: 'VIDEO',
-      numHands: 2,
-      minHandDetectionConfidence: 0.48,
-      minHandPresenceConfidence: 0.48,
-      minTrackingConfidence: 0.48,
-      cannedGesturesClassifierOptions: { scoreThreshold: 0.18 },
-    });
+    if (message.type === 'ready') {
+      window.clearTimeout(workerInitTimeout);
+      workerReadyResolve?.();
+      workerReadyResolve = null;
+      workerReadyReject = null;
+      return;
+    }
+
+    if (message.type === 'result') {
+      inferencePending = false;
+      consecutiveDetectionErrors = 0;
+      if (running && message.generation === visionGeneration) applyVisionResults(message);
+      return;
+    }
+
+    if (message.type === 'detect-error') {
+      inferencePending = false;
+      consecutiveDetectionErrors += 1;
+      console.warn('Worker frame detection failed.', message.message);
+      if (consecutiveDetectionErrors >= 3) onStatus('识别暂时中断，正在重试');
+      return;
+    }
+
+    if (message.type === 'error') {
+      const error = new Error(message.message || '识别模型加载失败');
+      if (workerReadyReject) rejectWorkerInitialization(error);
+      else onStatus(getFriendlyError(error));
+    }
+  }
+
+  function handleWorkerError(event) {
+    const error = new Error(event.message || '识别线程启动失败');
+    if (workerReadyReject) rejectWorkerInitialization(error);
+    else {
+      inferencePending = false;
+      onStatus(getFriendlyError(error));
+    }
+  }
+
+  function rejectWorkerInitialization(error) {
+    window.clearTimeout(workerInitTimeout);
+    workerReadyReject?.(error);
+    workerReadyResolve = null;
+    workerReadyReject = null;
+  }
+
+  function resetVisionWorker() {
+    window.clearTimeout(workerInitTimeout);
+    visionWorker?.terminate();
+    visionWorker = null;
+    workerReadyPromise = null;
+    workerReadyResolve = null;
+    workerReadyReject = null;
+    inferencePending = false;
   }
 
   function stop() {
     running = false;
+    visionGeneration += 1;
+    inferencePending = false;
     cancelAnimationFrame(animationFrame);
     stream?.getTracks().forEach((track) => track.stop());
     stream = null;
@@ -199,7 +287,7 @@ export function createSmileGame({
     video.srcObject = null;
     resetTrackingState();
     particles.length = 0;
-    onState({ loading: false, running: false });
+    onState({ loading: false, running: false, modeLabel: performanceProfile.label });
     onStatus('已停止');
     paintIdleScene();
     emitReadout(performance.now(), true);
@@ -208,6 +296,8 @@ export function createSmileGame({
   function destroy() {
     destroyed = true;
     running = false;
+    visionGeneration += 1;
+    inferencePending = false;
     cancelAnimationFrame(animationFrame);
     stream?.getTracks().forEach((track) => track.stop());
     stream = null;
@@ -215,8 +305,12 @@ export function createSmileGame({
     video.srcObject = null;
     particles.length = 0;
     resizeObserver.disconnect();
-    faceLandmarker?.close?.();
-    gestureRecognizer?.close?.();
+    if (visionWorker) {
+      visionWorker.postMessage({ type: 'dispose' });
+      visionWorker.terminate();
+      visionWorker = null;
+    }
+    window.clearTimeout(workerInitTimeout);
   }
 
   function render(now = performance.now()) {
@@ -225,9 +319,12 @@ export function createSmileGame({
     resizeCanvas();
     drawCamera();
 
-    const shouldInfer = video.currentTime !== lastVideoTime && now - lastInferenceAt > 48;
-    if (shouldInfer && faceLandmarker && gestureRecognizer) {
-      runVision(now);
+    const shouldInfer =
+      video.currentTime !== lastVideoTime &&
+      !inferencePending &&
+      now - lastInferenceAt > performanceProfile.inferenceInterval;
+    if (shouldInfer && visionWorker) {
+      requestVisionFrame(now);
       lastVideoTime = video.currentTime;
       lastInferenceAt = now;
     }
@@ -240,7 +337,10 @@ export function createSmileGame({
     else resetMotionState();
 
     if (!overlayIsActive && lastOverlayWasActive && faceAnchor) {
-      spawnHeadDissolve(faceAnchor, prefersReducedMotion ? 28 : 120);
+      spawnHeadDissolve(
+        faceAnchor,
+        prefersReducedMotion ? 24 : performanceProfile.dissolveParticles,
+      );
     }
     lastOverlayWasActive = overlayIsActive;
 
@@ -255,12 +355,40 @@ export function createSmileGame({
     animationFrame = requestAnimationFrame(render);
   }
 
-  function runVision(now) {
-    const faceResult = faceLandmarker.detectForVideo(video, now);
+  async function requestVisionFrame(timestampMs) {
+    inferencePending = true;
+    const requestId = ++inferenceRequestId;
+    const generation = visionGeneration;
+
+    try {
+      const bitmap = await window.createImageBitmap(video);
+      if (!running || destroyed || generation !== visionGeneration) {
+        bitmap.close?.();
+        inferencePending = false;
+        return;
+      }
+
+      visionWorker.postMessage(
+        { type: 'detect', bitmap, timestampMs, requestId, generation },
+        [bitmap],
+      );
+    } catch (error) {
+      inferencePending = false;
+      consecutiveDetectionErrors += 1;
+      console.warn('Unable to prepare camera frame for worker.', error);
+      if (consecutiveDetectionErrors >= 3) onStatus(getFriendlyError(error));
+    }
+  }
+
+  function applyVisionResults(message) {
+    const faceResult = { faceLandmarks: message.faceLandmarks };
     const nextAnchor = getFaceAnchor(faceResult);
     faceAnchor = nextAnchor ? smoothAnchor(faceAnchor, nextAnchor, 0.26) : null;
 
-    const gestureResult = gestureRecognizer.recognizeForVideo(video, now);
+    const gestureResult = {
+      gestures: message.gestures,
+      landmarks: message.handLandmarks,
+    };
     const gestureSignal = getGestureSignal(gestureResult);
     bestGesture = gestureSignal.best;
 
@@ -310,7 +438,7 @@ export function createSmileGame({
     lastSwitchAt = now;
     onHeadChange({ index: currentHeadIndex, name: SMILE_HEADS[currentHeadIndex][0] });
     onStatus(`已切换 · ${SMILE_HEADS[currentHeadIndex][0]}`);
-    spawnBurst(anchor, prefersReducedMotion ? 10 : 34);
+    spawnBurst(anchor, prefersReducedMotion ? 8 : performanceProfile.switchParticles);
     emitReadout(now, true);
   }
 
@@ -661,7 +789,7 @@ export function createSmileGame({
 
   function resizeCanvas() {
     const bounds = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, performanceProfile.maxDpr);
     const targetWidth = Math.max(1, Math.round(bounds.width * dpr));
     const targetHeight = Math.max(1, Math.round(bounds.height * dpr));
     if (canvas.width !== targetWidth || canvas.height !== targetHeight) {

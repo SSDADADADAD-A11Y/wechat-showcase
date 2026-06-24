@@ -47,6 +47,11 @@ export default function SmileGame({ standalone = false }) {
       onHeadChange: ({ index }) => setHeadIndex(index),
     });
 
+    const autoStartTimer =
+      import.meta.env.DEV && new URLSearchParams(window.location.search).has('autostart')
+        ? window.setTimeout(() => engineRef.current?.start(), 0)
+        : 0;
+
     const handleFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
     setCanFullscreen(Boolean(stageRef.current?.requestFullscreen));
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -54,6 +59,7 @@ export default function SmileGame({ standalone = false }) {
     return () => {
       engineRef.current?.destroy();
       engineRef.current = null;
+      window.clearTimeout(autoStartTimer);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
@@ -216,7 +222,7 @@ export default function SmileGame({ standalone = false }) {
 
           <div className="smile-game__corner" aria-hidden="true">
             <Camera size={16} />
-            本地实时处理
+            {gameState.modeLabel || '本地实时处理'}
           </div>
         </div>
       </div>

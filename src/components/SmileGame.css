@@ -331,6 +331,19 @@ body.smile-game-page {
   transform: translateY(-2px);
 }
 
+.smile-game__hint {
+  max-width: 340px;
+  margin: 4px auto 0;
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 211, 106, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 211, 106, 0.08);
+  color: #ffe1a6;
+  font-size: 12.5px;
+  line-height: 1.55;
+  text-align: center;
+}
+
 .smile-game__loading {
   gap: 16px;
   color: #d7cfc1;

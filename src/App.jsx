@@ -8,7 +8,18 @@ import QRCode from './components/QRCode';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import ChatWidget from './components/ChatWidget';
+import ParticleField from './components/ParticleField';
 import './App.css';
+
+const REVEAL_SELECTORS = [
+  '.section-header',
+  '.about__card',
+  '.articles__coming',
+  '.qrcode__card',
+  '.contact__card',
+  '.contact__note',
+  '.game-entry__inner',
+];
 
 function App() {
   useEffect(() => {
@@ -22,8 +33,45 @@ function App() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll(REVEAL_SELECTORS.join(',')));
+    if (!elements.length) return undefined;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      elements.forEach((el) => el.classList.add('reveal', 'is-visible'));
+      return undefined;
+    }
+
+    const grouped = new Map();
+    elements.forEach((el) => {
+      el.classList.add('reveal');
+      const parent = el.parentElement;
+      const peers = grouped.get(parent) || [];
+      el.style.transitionDelay = `${Math.min(peers.length * 90, 360)}ms`;
+      peers.push(el);
+      grouped.set(parent, peers);
+    });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <>
+      <ParticleField />
       <Header />
       <main>
         <Hero />

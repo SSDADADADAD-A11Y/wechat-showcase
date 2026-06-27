@@ -10,8 +10,10 @@ import {
   SmilePlus,
   Square,
 } from 'lucide-react';
-import { createSmileGame, SMILE_HEADS } from '../game/createSmileGame';
+import { createSmileGame, isInAppBrowser, SMILE_HEADS } from '../game/createSmileGame';
 import './SmileGame.css';
+
+const inAppBrowser = isInAppBrowser();
 
 const initialReadout = {
   face: false,
@@ -157,6 +159,11 @@ export default function SmileGame({ standalone = false }) {
                 <Play size={20} fill="currentColor" aria-hidden="true" />
                 开始游戏
               </button>
+              {inAppBrowser && (
+                <p className="smile-game__hint">
+                  当前为微信等内置浏览器，摄像头可能无法开启。请点右上角「···」选择「在浏览器中打开」。
+                </p>
+              )}
             </div>
           )}
 

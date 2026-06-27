@@ -870,10 +870,21 @@ function getCoverRect(sourceWidth, sourceHeight, targetWidth, targetHeight) {
   };
 }
 
+export function isInAppBrowser() {
+  if (typeof navigator === 'undefined') return false;
+  return /MicroMessenger|QQ\/|Weibo|WeiBo|DingTalk|Alipay/i.test(navigator.userAgent);
+}
+
 function getFriendlyError(error) {
-  if (error?.name === 'NotAllowedError') return '摄像头权限未开启';
+  const inApp = isInAppBrowser();
+  if (error?.name === 'NotAllowedError') {
+    return inApp
+      ? '摄像头被限制，请点右上角「···」选择在浏览器中打开后重试'
+      : '摄像头权限未开启';
+  }
   if (error?.name === 'NotFoundError') return '没有找到可用摄像头';
   if (error?.name === 'NotReadableError') return '摄像头正被其他应用占用';
+  if (inApp) return '当前应用内置浏览器可能限制摄像头，请点右上角菜单选择在浏览器中打开';
   return error?.message || '启动失败，请刷新后重试';
 }
 

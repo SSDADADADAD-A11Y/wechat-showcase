@@ -1,16 +1,40 @@
-# React + Vite
+# 视觉便签 · 官网展示站
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+「视觉便签」微信公众号的官方展示网站 —— 一个专注**原创微信红包封面设计**的团队。
 
-Currently, two official plugins are available:
+站点用 [React 19](https://react.dev) + [Vite](https://vite.dev) 构建，包含品牌介绍、作品文章、二维码关注引导，以及一个由 [DeepSeek](https://www.deepseek.com) 驱动的在线客服聊天组件和一个网页互动小游戏。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 功能
 
-## React Compiler
+- **单页展示**：首屏、关于、文章、小游戏入口、公众号二维码、联系方式等模块（见 `src/components/`）。
+- **AI 客服**：右下角聊天组件（`ChatWidget`）通过后端 `server.cjs` 调用 DeepSeek 接口回答访客提问，并按天记录对话日志。
+- **后台日志**：`/admin` 页面可凭密码查看历史聊天记录。
+- **互动小游戏**：基于 `@mediapipe/tasks-vision` 的网页小游戏（`src/game/`）。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 本地开发
 
-## Expanding the ESLint configuration
+```bash
+npm install      # 安装依赖
+npm run dev      # 启动 Vite 开发服务器（前端）
+npm run start    # 启动 Express 后端（聊天 API + 后台），默认端口 3001
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+其它脚本：
+
+```bash
+npm run build    # 构建生产版本到 dist/
+npm run preview  # 本地预览构建产物
+npm run lint     # 运行 ESLint
+```
+
+## 配置
+
+聊天接口的密钥等敏感配置应通过环境变量提供，不要硬编码或提交到仓库。
+
+## 部署
+
+仓库内已包含 [Netlify](https://www.netlify.com)（`netlify.toml`）与 [Render](https://render.com)（`render.yaml`）的部署配置。
+
+## 技术栈
+
+React 19 · Vite · Express · DeepSeek API · MediaPipe Tasks Vision

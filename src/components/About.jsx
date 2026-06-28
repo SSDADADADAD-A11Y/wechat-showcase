@@ -1,46 +1,53 @@
+import { Brush, Gift, MessageCircle, ScanLine } from 'lucide-react';
+
+const features = [
+  {
+    icon: Brush,
+    title: '原创视觉',
+    text: '从角色、纹样到色彩气质都独立构思，避免模板感，让封面有自己的记忆点。',
+  },
+  {
+    icon: Gift,
+    title: '红包场景',
+    text: '围绕春节、生日、祝福、纪念日等真实使用场景做系列化设计。',
+  },
+  {
+    icon: ScanLine,
+    title: '轻松领取',
+    text: '关注公众号后第一时间获取上新提醒，新账号内容会逐步发布。',
+  },
+  {
+    icon: MessageCircle,
+    title: '共创反馈',
+    text: '欢迎在公众号留言想要的主题，我们会把高频灵感做成后续系列。',
+  },
+];
+
 export default function About() {
   return (
     <section id="about" className="about">
       <div className="container">
         <div className="section-header">
-          <span className="section-tag">关于我们</span>
-          <h2 className="section-title">视觉便签 —— 专注红包封面设计</h2>
-          <p className="section-desc">一个热爱设计的小团队，用创意点亮每一个红包时刻</p>
+          <span className="section-tag">Studio Signal</span>
+          <h2 className="section-title">不是普通资料页，是一个正在生长的封面工作室</h2>
+          <p className="section-desc">
+            视觉便签目前是新建公众号，我们先把审美、玩法和领取入口做好，内容会按系列持续上线。
+          </p>
         </div>
 
         <div className="about__grid">
-          <div className="about__card">
-            <div className="about__icon">🎨</div>
-            <h3>原创设计</h3>
-            <p>
-              每一款红包封面均为团队原创设计，从构思到定稿精心打磨，
-              拒绝模板化，确保每一款作品都独一无二。
-            </p>
-          </div>
-          <div className="about__card">
-            <div className="about__icon">🧧</div>
-            <h3>封面类型</h3>
-            <p>
-              涵盖节日限定、国潮风格、可爱萌宠、极简文艺等多元风格，
-              满足不同场景和审美的红包封面需求。
-            </p>
-          </div>
-          <div className="about__card">
-            <div className="about__icon">🆓</div>
-            <h3>免费领取</h3>
-            <p>
-              关注公众号即可免费领取精选红包封面，定期更新新款上线，
-              让每一次发红包都成为视觉享受。
-            </p>
-          </div>
-          <div className="about__card">
-            <div className="about__icon">💬</div>
-            <h3>互动社区</h3>
-            <p>
-              欢迎在公众号留言提出你的创意想法，好的设计灵感
-              可能来自每一位读者的建议，一起打造更美的封面。
-            </p>
-          </div>
+          {features.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <article className="about__card" key={item.title} style={{ '--i': index }}>
+                <div className="about__icon">
+                  <Icon size={26} aria-hidden="true" />
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

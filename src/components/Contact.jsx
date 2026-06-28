@@ -1,44 +1,70 @@
+import { Mail, MessageSquareText, Phone, Sparkles } from 'lucide-react';
+
+const contacts = [
+  {
+    icon: Mail,
+    title: '邮箱',
+    desc: '合作、定制、素材沟通',
+    value: '2469208561@qq.com',
+    href: 'mailto:2469208561@qq.com',
+  },
+  {
+    icon: Phone,
+    title: '手机',
+    desc: '紧急事项可电话联系',
+    value: '18519717419',
+    href: 'tel:18519717419',
+  },
+  {
+    icon: MessageSquareText,
+    title: '公众号留言',
+    desc: '主题建议和领取反馈',
+    value: '视觉便签',
+  },
+  {
+    icon: Sparkles,
+    title: '定制合作',
+    desc: '品牌联名、活动封面',
+    value: '欢迎来信说明需求',
+  },
+];
+
 export default function Contact() {
   return (
     <section id="contact" className="contact">
       <div className="container">
         <div className="section-header">
-          <span className="section-tag">联系我们</span>
-          <h2 className="section-title">期待与你的交流</h2>
-          <p className="section-desc">封面定制、合作、建议，欢迎随时联系</p>
+          <span className="section-tag">Contact</span>
+          <h2 className="section-title">想做一套自己的红包封面，可以直接联系</h2>
+          <p className="section-desc">合作、定制、建议都可以发来。公众号后台留言通常更适合日常沟通。</p>
         </div>
 
         <div className="contact__grid">
-          <div className="contact__card">
-            <div className="contact__icon">📧</div>
-            <h3>电子邮箱</h3>
-            <p>商务合作 / 封面定制</p>
-            <a>2469208561@qq.com</a>
-          </div>
-          <div className="contact__card">
-            <div className="contact__icon">💬</div>
-            <h3>公众号留言</h3>
-            <p>最快获得回复的方式</p>
-            <span>直接在公众号文章下留言</span>
-          </div>
-          <div className="contact__card">
-            <div className="contact__icon">🎨</div>
-            <h3>定制合作</h3>
-            <p>企业定制 / 品牌联名封面</p>
-            <span>请发送邮件注明合作需求</span>
-          </div>
-          <div className="contact__card">
-            <div className="contact__icon">📱</div>
-            <h3>联系手机</h3>
-            <p>紧急事务 / 电话联系</p>
-            <a>18519717419</a>
-          </div>
+          {contacts.map((item) => {
+            const Icon = item.icon;
+            const content = (
+              <>
+                <Icon size={25} aria-hidden="true" />
+                <h3>{item.title}</h3>
+                <p>{item.desc}</p>
+                <strong>{item.value}</strong>
+              </>
+            );
+            return item.href ? (
+              <a className="contact__card" href={item.href} key={item.title}>
+                {content}
+              </a>
+            ) : (
+              <article className="contact__card" key={item.title}>
+                {content}
+              </article>
+            );
+          })}
         </div>
 
         <div className="contact__note">
           <p>
-            💡 <strong>小提示：</strong>
-            新款红包封面通常在公众号首发，关注后设为星标，确保第一时间收到上线通知。在公众号后台留言通常会在 24 小时内回复！
+            小提示：公众号是新账号，内容会逐步发布。先关注并设为星标，后续上新不容易错过。
           </p>
         </div>
       </div>

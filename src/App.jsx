@@ -14,7 +14,9 @@ import './App.css';
 const REVEAL_SELECTORS = [
   '.section-header',
   '.about__card',
-  '.articles__coming',
+  '.articles__hero-card',
+  '.articles__series-card',
+  '.articles__ticker',
   '.qrcode__card',
   '.contact__card',
   '.contact__note',

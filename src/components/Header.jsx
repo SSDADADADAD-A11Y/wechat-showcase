@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Gamepad2 } from 'lucide-react';
+import { Gamepad2, Menu, X } from 'lucide-react';
 
 const navItems = [
   { id: 'hero', label: '首页' },
-  { id: 'about', label: '关于' },
-  { id: 'articles', label: '文章' },
+  { id: 'about', label: '团队' },
+  { id: 'articles', label: '封面' },
   { id: 'game', label: '小游戏', href: '/game' },
   { id: 'qrcode', label: '关注' },
   { id: 'contact', label: '联系' },
@@ -15,8 +15,9 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', onScroll);
+    onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
@@ -32,7 +33,8 @@ export default function Header() {
     <header className={`header${scrolled ? ' header--scrolled' : ''}`}>
       <div className="header__inner">
         <a className="header__logo" href="#hero" onClick={() => scrollTo('hero')}>
-          📢 视觉便签
+          <span>视觉便签</span>
+          <small>Red Packet Covers</small>
         </a>
         <nav className={`header__nav${mobileOpen ? ' header__nav--open' : ''}`}>
           {navItems.map((item) => (
@@ -49,12 +51,11 @@ export default function Header() {
         </nav>
         <button
           className="header__hamburger"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="菜单"
+          onClick={() => setMobileOpen((value) => !value)}
+          aria-label={mobileOpen ? '关闭菜单' : '打开菜单'}
+          aria-expanded={mobileOpen}
         >
-          <span />
-          <span />
-          <span />
+          {mobileOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
         </button>
       </div>
     </header>

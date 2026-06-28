@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
+import { MessageCircle, Send, X } from 'lucide-react';
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: '你好！我是视觉便签的AI助手 🤖\n\n有什么关于红包封面或公众号的问题，随时问我！' }
+    {
+      role: 'assistant',
+      content: '你好，我是视觉便签的 AI 助手。\n\n想了解红包封面、公众号领取方式或定制合作，都可以问我。',
+    },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +22,7 @@ export default function ChatWidget() {
     if (!text || loading) return;
 
     const userMsg = { role: 'user', content: text };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
@@ -33,9 +37,9 @@ export default function ChatWidget() {
 
       const data = await res.json();
       const reply = data.reply || '抱歉，我暂时无法回复，请稍后再试。';
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: '网络出问题了，请检查网络后重试。' }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: '网络出了点问题，请检查网络后重试。' }]);
     } finally {
       setLoading(false);
     }
@@ -54,18 +58,20 @@ export default function ChatWidget() {
         <div className="chat-panel">
           <div className="chat-panel__header">
             <div className="chat-panel__header-info">
-              <span className="chat-panel__avatar">🤖</span>
+              <span className="chat-panel__avatar"><MessageCircle size={22} aria-hidden="true" /></span>
               <div>
-                <div className="chat-panel__title">视觉便签 AI助手</div>
+                <div className="chat-panel__title">视觉便签 AI 助手</div>
                 <div className="chat-panel__status">在线</div>
               </div>
             </div>
-            <button className="chat-panel__close" onClick={() => setOpen(false)}>✕</button>
+            <button className="chat-panel__close" onClick={() => setOpen(false)} aria-label="关闭对话">
+              <X size={17} aria-hidden="true" />
+            </button>
           </div>
 
           <div className="chat-panel__messages">
             {messages.map((msg, i) => (
-              <div key={i} className={`chat-msg ${msg.role === 'user' ? 'chat-msg--user' : 'chat-msg--bot'}`}>
+              <div key={`${msg.role}-${i}`} className={`chat-msg ${msg.role === 'user' ? 'chat-msg--user' : 'chat-msg--bot'}`}>
                 <div className="chat-msg__bubble">{msg.content}</div>
               </div>
             ))}
@@ -85,7 +91,7 @@ export default function ChatWidget() {
             <input
               className="chat-panel__input"
               value={input}
-              onChange={e => setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="输入消息..."
               disabled={loading}
@@ -94,15 +100,16 @@ export default function ChatWidget() {
               className="chat-panel__send"
               onClick={sendMessage}
               disabled={loading || !input.trim()}
+              aria-label="发送消息"
             >
-              发送
+              <Send size={17} aria-hidden="true" />
             </button>
           </div>
         </div>
       )}
 
-      <button className={`chat-fab ${open ? 'chat-fab--hidden' : ''}`} onClick={() => setOpen(true)}>
-        <span className="chat-fab__icon">💬</span>
+      <button className={`chat-fab ${open ? 'chat-fab--hidden' : ''}`} onClick={() => setOpen(true)} aria-label="打开 AI 助手">
+        <MessageCircle size={25} aria-hidden="true" />
       </button>
     </>
   );

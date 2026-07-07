@@ -39,15 +39,15 @@ export function getSmilePerformanceProfile() {
   if (mobileUserAgent || compactTouchDevice) {
     return {
       id: 'light',
-      label: '手机轻量模式',
-      cameraWidth: 640,
-      cameraHeight: 480,
-      cameraFrameRate: 24,
-      inferenceInterval: 110,
+      label: '手机高清模式',
+      cameraWidth: 960,
+      cameraHeight: 720,
+      cameraFrameRate: 60,
+      inferenceInterval: 50,
       numHands: 1,
-      maxDpr: 1,
-      dissolveParticles: 40,
-      switchParticles: 16,
+      maxDpr: 1.45,
+      dissolveParticles: 64,
+      switchParticles: 26,
     };
   }
 

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#38eda4" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LedgerPilot" />
+    <title>LedgerPilot</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">LedgerPilot</p>
+          <h1>&#x4E00;&#x53E5;&#x8BDD;&#x8BB0;&#x8D26;&#x667A;&#x80FD;&#x4F53;</h1>
+          <p class="subtitle">&#x628A;&#x201C;&#x5348;&#x996D;32&#xFF0C;&#x652F;&#x4ED8;&#x5B9D;&#x6253;&#x8F66;26&#xFF0C;&#x5DE5;&#x8D44;5000&#x201D;&#x53D8;&#x6210;&#x7ED3;&#x6784;&#x5316;&#x6D41;&#x6C34;&#x3001;&#x9884;&#x7B97;&#x63D0;&#x9192;&#x548C;&#x6708;&#x5EA6;&#x62A5;&#x544A;&#x3002;</p>
+        </div>
+        <section class="balance-card" aria-label="monthly balance">
+          <span>&#x672C;&#x6708;&#x7ED3;&#x4F59;</span>
+          <strong id="netBalance">&yen;0</strong>
+          <small id="monthLabel">&#x5F53;&#x524D;&#x6708;&#x4EFD;</small>
+        </section>
+      </header>
+
+      <section class="mobile-tabs" aria-label="mobile sections">
+        <button class="tab active" type="button" data-jump="composer">&#x8BB0;&#x4E00;&#x7B14;</button>
+        <button class="tab" type="button" data-jump="metrics">&#x6982;&#x89C8;</button>
+        <button class="tab" type="button" data-jump="ledger">&#x6D41;&#x6C34;</button>
+        <button class="tab" type="button" data-jump="report">&#x62A5;&#x544A;</button>
+      </section>
+
+      <section class="layout">
+        <section class="panel composer" id="composer">
+          <div class="panel-title">
+            <p class="eyebrow">Capture</p>
+            <h2>&#x81EA;&#x7136;&#x8BED;&#x8A00;&#x5165;&#x8D26;</h2>
+          </div>
+          <textarea id="entryInput" aria-label="bookkeeping input">&#x4ECA;&#x5929;&#x5348;&#x996D;32&#xFF0C;&#x5496;&#x5561;18&#xFF0C;&#x652F;&#x4ED8;&#x5B9D;&#x6253;&#x8F66;26&#xFF0C;&#x5DE5;&#x8D44;&#x6536;&#x5165;5000</textarea>
+          <div class="quick-row">
+            <button type="button" data-sample="&#x65E9;&#x9910;12&#xFF0C;&#x5730;&#x94C1;4&#xFF0C;&#x4E70;&#x4E66;89">&#x65E5;&#x5E38;&#x6837;&#x4F8B;</button>
+            <button type="button" data-sample="&#x5BA2;&#x6237;&#x4ED8;&#x6B3E;1200&#xFF0C;&#x6253;&#x5370;&#x5408;&#x540C;36&#xFF0C;&#x5348;&#x9910;28">&#x5C0F;&#x5E97;&#x6837;&#x4F8B;</button>
+            <button type="button" data-sample="&#x623F;&#x79DF;2200&#xFF0C;&#x6C34;&#x7535;156&#xFF0C;&#x517C;&#x804C;&#x6536;&#x5165;800">&#x6708;&#x521D;&#x6837;&#x4F8B;</button>
+          </div>
+          <button id="parseButton" class="primary" type="button">
+            <span>&#x89E3;&#x6790;&#x5E76;&#x5165;&#x8D26;</span>
+            <span>Enter</span>
+          </button>
+          <div class="agent-note" aria-live="polite">
+            <span class="dot"></span>
+            <p id="agentNote">&#x652F;&#x6301;&#x4E00;&#x884C;&#x5199;&#x591A;&#x7B14;&#x6D41;&#x6C34;&#xFF0C;&#x4F1A;&#x81EA;&#x52A8;&#x8BC6;&#x522B;&#x6536;&#x5165;&#x3001;&#x652F;&#x51FA;&#x3001;&#x5206;&#x7C7B;&#x548C;&#x8D26;&#x6237;&#x3002;</p>
+          </div>
+        </section>
+
+        <section class="panel metrics" id="metrics">
+          <div class="panel-title">
+            <p class="eyebrow">Month</p>
+            <h2>&#x8D22;&#x52A1;&#x9A7E;&#x9A76;&#x8231;</h2>
+          </div>
+          <div class="metric-grid">
+            <article><span>&#x6536;&#x5165;</span><strong id="incomeTotal">&yen;0</strong></article>
+            <article><span>&#x652F;&#x51FA;</span><strong id="expenseTotal">&yen;0</strong></article>
+            <article><span>&#x8BB0;&#x8D26;&#x7B14;&#x6570;</span><strong id="entryCount">0</strong></article>
+            <article><span>&#x65E5;&#x5747;&#x652F;&#x51FA;</span><strong id="dailyAverage">&yen;0</strong></article>
+          </div>
+          <div id="categoryBars" class="category-bars" aria-label="category expenses"></div>
+        </section>
+
+        <section class="panel budgets" id="budgets">
+          <div class="panel-title split">
+            <div>
+              <p class="eyebrow">Budget</p>
+              <h2>&#x9884;&#x7B97;&#x8BBE;&#x7F6E;</h2>
+            </div>
+            <button id="saveBudgets" class="ghost" type="button">&#x4FDD;&#x5B58;</button>
+          </div>
+          <div id="budgetInputs" class="budget-inputs"></div>
+        </section>
+
+        <section class="panel insight" id="insight">
+          <div class="panel-title">
+            <p class="eyebrow">Agent</p>
+            <h2>&#x667A;&#x80FD;&#x63D0;&#x9192;</h2>
+          </div>
+          <div id="insightText" class="insight-box">&#x6DFB;&#x52A0;&#x6D41;&#x6C34;&#x540E;&#xFF0C;&#x6211;&#x4F1A;&#x5224;&#x65AD;&#x9884;&#x7B97;&#x98CE;&#x9669;&#x3001;&#x6700;&#x9AD8;&#x652F;&#x51FA;&#x5206;&#x7C7B;&#x548C;&#x4E0B;&#x4E00;&#x6B65;&#x52A8;&#x4F5C;&#x3002;</div>
+        </section>
+
+        <section class="panel ledger" id="ledger">
+          <div class="panel-title split">
+            <div>
+              <p class="eyebrow">Ledger</p>
+              <h2>&#x6D41;&#x6C34;&#x660E;&#x7EC6;</h2>
+            </div>
+            <div class="actions">
+              <button id="exportCsv" class="ghost" type="button">&#x5BFC;&#x51FA; CSV</button>
+              <button id="clearButton" class="ghost danger" type="button">&#x6E05;&#x7A7A;</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>&#x65E5;&#x671F;</th>
+                  <th>&#x7C7B;&#x578B;</th>
+                  <th>&#x9879;&#x76EE;</th>
+                  <th>&#x5206;&#x7C7B;</th>
+                  <th>&#x8D26;&#x6237;</th>
+                  <th>&#x91D1;&#x989D;</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="ledgerBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel report" id="report">
+          <div class="panel-title split">
+            <div>
+              <p class="eyebrow">Report</p>
+              <h2>&#x6708;&#x5EA6;&#x62A5;&#x544A;</h2>
+            </div>
+            <button id="copyReport" class="ghost" type="button">&#x590D;&#x5236;&#x62A5;&#x544A;</button>
+          </div>
+          <div id="reportText" class="report-text"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

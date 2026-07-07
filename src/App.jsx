@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import About from './components/About';
 import Articles from './components/Articles';
 import GameEntry from './components/GameEntry';
+import LedgerEntry from './components/LedgerEntry';
 import QRCode from './components/QRCode';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
@@ -17,6 +18,7 @@ const REVEAL_SELECTORS = [
   '.articles__hero-card',
   '.articles__series-card',
   '.articles__ticker',
+  '.ledger-entry__inner',
   '.qrcode__card',
   '.contact__card',
   '.contact__note',
@@ -80,6 +82,7 @@ function App() {
         <About />
         <Articles />
         <GameEntry />
+        <LedgerEntry />
         <QRCode />
         <Contact />
       </main>

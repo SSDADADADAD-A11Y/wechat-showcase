@@ -22,6 +22,7 @@ export default function Footer() {
             <a onClick={() => scrollTo('about')}>关于我们</a>
             <a onClick={() => scrollTo('articles')}>封面计划</a>
             <a href="/game">笑脸小游戏</a>
+            <a href="/ledger/">记账智能体</a>
             <a onClick={() => scrollTo('qrcode')}>关注公众号</a>
           </div>
           <div className="footer__back">

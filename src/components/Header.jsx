@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Gamepad2, Menu, X } from 'lucide-react';
+import { Calculator, Gamepad2, Menu, X } from 'lucide-react';
 
 const navItems = [
   { id: 'hero', label: '首页' },
   { id: 'about', label: '团队' },
   { id: 'articles', label: '封面' },
-  { id: 'game', label: '小游戏', href: '/game' },
+  { id: 'game', label: '小游戏', href: '/game', icon: Gamepad2, variant: 'gold' },
+  { id: 'ledger', label: '记账智能体', href: '/ledger/', icon: Calculator, variant: 'jade' },
   { id: 'qrcode', label: '关注' },
   { id: 'contact', label: '联系' },
 ];
@@ -37,17 +38,20 @@ export default function Header() {
           <small>Red Packet Covers</small>
         </a>
         <nav className={`header__nav${mobileOpen ? ' header__nav--open' : ''}`}>
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              className={item.href ? 'header__game-link' : undefined}
-              href={item.href || `#${item.id}`}
-              onClick={item.href ? undefined : () => scrollTo(item.id)}
-            >
-              {item.href && <Gamepad2 size={16} aria-hidden="true" />}
-              {item.label}
-            </a>
-          ))}
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <a
+                key={item.id}
+                className={item.variant ? `header__special-link header__special-link--${item.variant}` : undefined}
+                href={item.href || `#${item.id}`}
+                onClick={item.href ? undefined : () => scrollTo(item.id)}
+              >
+                {Icon && <Icon size={16} aria-hidden="true" />}
+                {item.label}
+              </a>
+            );
+          })}
         </nav>
         <button
           className="header__hamburger"

@@ -77,10 +77,17 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
-.header__nav a.header__game-link {
+.header__nav a.header__game-link,
+.header__nav a.header__special-link--gold {
   color: #251605;
   background: var(--gold-gradient);
   box-shadow: 0 10px 24px rgba(216, 180, 106, 0.25);
+}
+
+.header__nav a.header__special-link--jade {
+  color: #06130f;
+  background: linear-gradient(135deg, #d8fff1, #57b796 48%, #2a765e);
+  box-shadow: 0 10px 24px rgba(87, 183, 150, 0.22);
 }
 
 .header__hamburger {

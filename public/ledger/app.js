@@ -89,8 +89,15 @@ function addNaturalEntries() {
   state.entries.unshift(...parsed);
   saveEntries();
   document.querySelector("#entryInput").value = "";
-  setNote(`\u5df2\u5165\u8d26 ${parsed.length} \u7b14\uff1a${parsed.map((item) => item.title).join("\u3001")}\u3002`);
   render();
+  const budgetAlerts = getBudgetAlerts();
+  if (budgetAlerts.over.length) {
+    setNote(`\u5df2\u5165\u8d26 ${parsed.length} \u7b14\u3002\u9884\u7b97\u8d85\u989d\uff1a${budgetAlerts.over.map((item) => `${item.category} ${item.ratio}%`).join("\u3001")}\uff0c\u5efa\u8bae\u7acb\u523b\u63a7\u5236\u8be5\u7c7b\u652f\u51fa\u3002`);
+  } else if (budgetAlerts.warn.length) {
+    setNote(`\u5df2\u5165\u8d26 ${parsed.length} \u7b14\u3002\u9884\u7b97\u9884\u8b66\uff1a${budgetAlerts.warn.map((item) => `${item.category} ${item.ratio}%`).join("\u3001")}\u3002`);
+  } else {
+    setNote(`\u5df2\u5165\u8d26 ${parsed.length} \u7b14\uff1a${parsed.map((item) => item.title).join("\u3001")}\u3002`);
+  }
 }
 
 function parseEntries(input) {
@@ -173,6 +180,7 @@ function render() {
   document.querySelector("#monthLabel").textContent = monthName;
 
   renderBudgetInputs();
+  renderBudgetAlerts();
   renderCategoryBars(totals.expense);
   renderLedger();
   renderInsight(totals);
@@ -184,16 +192,41 @@ function renderBudgetInputs() {
   document.querySelector("#budgetInputs").innerHTML = Object.entries(state.budgets)
     .map(([category, budget]) => {
       const spent = usage[category] || 0;
-      const ratio = Math.min(100, Math.round((spent / Math.max(budget, 1)) * 100));
-      const color = ratio >= 90 ? "var(--red)" : ratio >= 70 ? "var(--yellow)" : "var(--mint)";
+      const ratio = Math.round((spent / Math.max(budget, 1)) * 100);
+      const cappedRatio = Math.min(100, ratio);
+      const level = ratio >= 100 ? "over" : ratio >= 80 ? "warn" : "safe";
+      const color = level === "over" ? "var(--red)" : level === "warn" ? "var(--yellow)" : "var(--mint)";
       return `
-        <label class="budget-row">
+        <label class="budget-row ${level}">
           <span>${escapeHtml(category)}</span>
           <input data-budget="${escapeHtml(category)}" value="${budget}" inputmode="decimal" />
           <strong>${ratio}%</strong>
           <span></span>
-          <span class="budget-meter"><span style="width:${ratio}%;background:${color}"></span></span>
+          <span class="budget-meter"><span style="width:${cappedRatio}%;background:${color}"></span></span>
         </label>
+      `;
+    })
+    .join("");
+}
+
+function renderBudgetAlerts() {
+  const alerts = getBudgetAlerts();
+  const container = document.querySelector("#budgetAlerts");
+  const items = [...alerts.over, ...alerts.warn];
+  if (!items.length) {
+    container.innerHTML = `<div class="budget-alert safe">\u9884\u7b97\u72b6\u6001\u6b63\u5e38\uff0c\u6682\u65e0\u8d85\u989d\u6216\u9ad8\u98ce\u9669\u5206\u7c7b\u3002</div>`;
+    return;
+  }
+
+  container.innerHTML = items
+    .map((item) => {
+      const isOver = item.level === "over";
+      const overText = isOver ? `\uff0c\u5df2\u8d85\u51fa ${money(item.spent - item.budget)}` : `\uff0c\u5269\u4f59 ${money(Math.max(item.budget - item.spent, 0))}`;
+      return `
+        <div class="budget-alert ${item.level}">
+          <strong>${isOver ? "\u8d85\u989d" : "\u9884\u8b66"}\uff1a${escapeHtml(item.category)} ${item.ratio}%</strong>
+          <span>\u5df2\u7528 ${money(item.spent)} / \u9884\u7b97 ${money(item.budget)}${overText}</span>
+        </div>
       `;
     })
     .join("");
@@ -257,22 +290,17 @@ function renderLedger() {
 
 function renderInsight(totals) {
   const top = topCategory();
-  const warnings = [];
-
-  Object.entries(categoryExpenseTotals()).forEach(([category, spent]) => {
-    const budget = state.budgets[category];
-    if (budget && spent > budget * 0.9) {
-      warnings.push(`${category} \u5df2\u4f7f\u7528 ${Math.round((spent / budget) * 100)}% \u9884\u7b97`);
-    }
-  });
+  const budgetAlerts = getBudgetAlerts();
 
   let message = "\u76ee\u524d\u652f\u51fa\u7ed3\u6784\u5065\u5eb7\u3002\u7ee7\u7eed\u4fdd\u6301\u6bcf\u7b14\u53ca\u65f6\u8bb0\u5f55\uff0c\u6708\u5e95\u62a5\u544a\u4f1a\u66f4\u51c6\u3002";
   if (!state.entries.length) {
     message = "\u6dfb\u52a0\u51e0\u7b14\u8d26\u540e\uff0c\u6211\u4f1a\u81ea\u52a8\u5224\u65ad\u6700\u9ad8\u652f\u51fa\u5206\u7c7b\u548c\u9884\u7b97\u98ce\u9669\u3002";
+  } else if (budgetAlerts.over.length) {
+    message = `\u9884\u7b97\u8d85\u989d\uff1a${budgetAlerts.over.map((item) => `${item.category} \u5df2\u7528 ${item.ratio}%`).join("\uff1b")}\u3002\u5efa\u8bae\u7acb\u523b\u6682\u505c\u8fd9\u4e9b\u5206\u7c7b\u7684\u975e\u5fc5\u8981\u652f\u51fa\u3002`;
+  } else if (budgetAlerts.warn.length) {
+    message = `\u9884\u7b97\u9884\u8b66\uff1a${budgetAlerts.warn.map((item) => `${item.category} \u5df2\u7528 ${item.ratio}%`).join("\uff1b")}\u3002\u5efa\u8bae\u63a5\u4e0b\u6765 7 \u5929\u4f18\u5148\u63a7\u5236\u8fd9\u4e9b\u5206\u7c7b\u3002`;
   } else if (totals.expense > totals.income && totals.income > 0) {
     message = `\u672c\u6708\u652f\u51fa\u5df2\u7ecf\u9ad8\u4e8e\u6536\u5165 ${money(totals.expense - totals.income)}\uff0c\u5efa\u8bae\u5148\u6682\u505c\u975e\u5fc5\u8981\u6d88\u8d39\u3002`;
-  } else if (warnings.length) {
-    message = `\u9884\u7b97\u63d0\u9192\uff1a${warnings.join("\uff1b")}\u3002\u5efa\u8bae\u628a\u63a5\u4e0b\u6765 7 \u5929\u7684\u6d88\u8d39\u96c6\u4e2d\u8bb0\u5f55\u3002`;
   } else if (top) {
     message = `\u672c\u6708\u6700\u9ad8\u652f\u51fa\u662f\u300c${top.name}\u300d${money(top.amount)}\uff0c\u5360\u603b\u652f\u51fa\u7684 ${Math.round((top.amount / Math.max(totals.expense, 1)) * 100)}%\u3002`;
   }
@@ -308,8 +336,15 @@ function saveBudgetInputs() {
     if (Number.isFinite(value) && value >= 0) state.budgets[input.dataset.budget] = value;
   });
   localStorage.setItem(budgetStoreKey, JSON.stringify(state.budgets));
-  setNote("\u9884\u7b97\u5df2\u4fdd\u5b58\u3002");
   render();
+  const budgetAlerts = getBudgetAlerts();
+  if (budgetAlerts.over.length) {
+    setNote(`\u9884\u7b97\u5df2\u4fdd\u5b58\uff0c\u4f46\u6709 ${budgetAlerts.over.length} \u4e2a\u5206\u7c7b\u5df2\u8d85\u989d\u3002`);
+  } else if (budgetAlerts.warn.length) {
+    setNote(`\u9884\u7b97\u5df2\u4fdd\u5b58\uff0c\u6709 ${budgetAlerts.warn.length} \u4e2a\u5206\u7c7b\u63a5\u8fd1\u4e0a\u9650\u3002`);
+  } else {
+    setNote("\u9884\u7b97\u5df2\u4fdd\u5b58\u3002");
+  }
 }
 
 function clearEntries() {
@@ -377,6 +412,29 @@ function topCategory() {
   return Object.entries(categoryExpenseTotals())
     .map(([name, amount]) => ({ name, amount }))
     .sort((a, b) => b.amount - a.amount)[0];
+}
+
+function getBudgetAlerts() {
+  const usage = categoryExpenseTotals();
+  const alerts = Object.entries(state.budgets)
+    .map(([category, budget]) => {
+      const spent = usage[category] || 0;
+      const ratio = Math.round((spent / Math.max(budget, 1)) * 100);
+      return {
+        category,
+        budget,
+        spent,
+        ratio,
+        level: ratio >= 100 ? "over" : ratio >= 80 ? "warn" : "safe"
+      };
+    })
+    .filter((item) => item.budget > 0 && item.ratio >= 80)
+    .sort((a, b) => b.ratio - a.ratio);
+
+  return {
+    over: alerts.filter((item) => item.level === "over"),
+    warn: alerts.filter((item) => item.level === "warn")
+  };
 }
 
 function topAccount() {

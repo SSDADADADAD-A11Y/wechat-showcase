@@ -46,6 +46,8 @@ const state = {
   budgets: loadJson(budgetStoreKey, defaultBudgets)
 };
 
+clearLegacySampleInput();
+
 document.querySelectorAll("[data-sample]").forEach((button) => {
   button.addEventListener("click", () => {
     document.querySelector("#entryInput").value = button.dataset.sample;
@@ -70,7 +72,18 @@ document.querySelector("#exportCsv").addEventListener("click", exportCsv);
 document.querySelector("#copyReport").addEventListener("click", copyReport);
 
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
+  navigator.serviceWorker.register("./sw.js").then((registration) => {
+    registration.update?.();
+  }).catch(() => {});
+}
+
+function clearLegacySampleInput() {
+  const input = document.querySelector("#entryInput");
+  const legacySamples = [
+    "\u4eca\u5929\u5348\u996d32\uff0c\u5496\u556118\uff0c\u652f\u4ed8\u5b9d\u6253\u8f6626\uff0c\u5de5\u8d44\u6536\u51655000",
+    "\u4eca\u5929\u5348\u996d32\uff0c \u5496\u556118\uff0c \u652f\u4ed8\u5b9d\u6253\u8f6626\uff0c \u5de5\u8d44\u6536\u51655000"
+  ];
+  if (input && legacySamples.includes(input.value.trim())) input.value = "";
 }
 
 function addNaturalEntries() {

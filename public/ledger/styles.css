@@ -161,6 +161,10 @@ input:focus {
   box-shadow: 0 0 0 4px var(--yellow);
 }
 
+textarea::placeholder {
+  color: color-mix(in srgb, var(--ink) 48%, transparent);
+}
+
 .quick-row,
 .actions {
   display: flex;
@@ -303,6 +307,18 @@ input:focus {
   font-weight: 900;
 }
 
+.budget-row.warn input {
+  background: #fff4b8;
+}
+
+.budget-row.over input {
+  background: #ffd0c6;
+}
+
+.budget-row.over strong {
+  color: var(--red);
+}
+
 .budget-meter {
   height: 16px;
   border: 2px solid var(--line);
@@ -313,6 +329,42 @@ input:focus {
   display: block;
   height: 100%;
   background: var(--mint);
+}
+
+.budget-alerts {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.budget-alert {
+  border: 2px solid var(--line);
+  padding: 12px;
+  background: #e7f8ea;
+  color: #26302e;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.budget-alert strong,
+.budget-alert span {
+  display: block;
+}
+
+.budget-alert strong {
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.budget-alert.warn {
+  background: var(--yellow);
+}
+
+.budget-alert.over {
+  background: var(--red);
+  color: white;
+  box-shadow: 4px 4px 0 var(--ink);
+  animation: alertPulse 1.35s ease-in-out infinite;
 }
 
 .insight-box,
@@ -404,6 +456,13 @@ tr:last-child td {
 @keyframes pulse {
   50% {
     opacity: 0.35;
+  }
+}
+
+@keyframes alertPulse {
+  50% {
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0 var(--ink);
   }
 }
 
